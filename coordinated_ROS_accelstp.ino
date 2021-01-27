@@ -7,6 +7,7 @@
 #include <std_msgs/Int32MultiArray.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/UInt16.h>
 
 ros::NodeHandle  nh;
 
@@ -194,8 +195,8 @@ void moveAll_ToPosition(const std_msgs::Int32MultiArray& positions){
       }
     }
   }
-  close_gripper();
-  open_gripper();
+//  close_gripper();
+//  open_gripper();
 }
 
 void messageCb(const std_msgs::Int32MultiArray& joint_steps){
@@ -206,13 +207,22 @@ void messageCb(const std_msgs::Int32MultiArray& joint_steps){
   moveAll_ToPosition(joint_steps);
 }
 
+void gripper_cb( const std_msgs::UInt16& grp_msg){
+  if(grp_msg.data == 1) open_gripper();
+  if(grp_msg.data == 0) close_gripper();
+  temp_msg.data = grp_msg.data;
+  pub_temp.publish(&temp_msg);
+}
+
 
 ros::Subscriber<std_msgs::Int32MultiArray> sub("ard_pub", messageCb);
+ros::Subscriber<std_msgs::UInt16> grip_sub("gripper", gripper_cb);
 
 void setup() {
 
   nh.initNode();
-  nh.subscribe(sub);  
+  nh.subscribe(sub);
+  nh.subscribe(grip_sub);  
   nh.advertise(pub_temp);
   nh.advertise(Pub_Arr);
   
